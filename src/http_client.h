@@ -82,5 +82,5 @@ public:
     static std::string signWithRSA(const std::string& data, const std::string& privateKey);
 
 private:
-    std::unique_ptr<HttpClientImpl> pImpl;
+    std::unique_ptr<HttpClientImpl> impl_;
 }; 

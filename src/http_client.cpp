@@ -450,7 +450,7 @@ public:
     struct curl_slist* headerList_;
 };
 
-HttpClient::HttpClient() : pImpl(std::make_unique<HttpClientImpl>()) {
+HttpClient::HttpClient() : impl_(std::make_unique<HttpClientImpl>()) {
 }
 
 HttpClient::~HttpClient() = default;
@@ -460,35 +460,35 @@ HttpClient::HttpClient(HttpClient&&) noexcept = default;
 HttpClient& HttpClient::operator=(HttpClient&&) noexcept = default;
 
 void HttpClient::setHeaders(const std::map<std::string, std::string>& headers) {
-    pImpl->setHeaders(headers);
+    impl_->setHeaders(headers);
 }
 
 void HttpClient::addHeader(const std::string& name, const std::string& value) {
-    pImpl->addHeader(name, value);
+    impl_->addHeader(name, value);
 }
 
 void HttpClient::setCookies(const std::string& cookies) {
-    pImpl->setCookies(cookies);
+    impl_->setCookies(cookies);
 }
 
 std::string HttpClient::getCookies() const {
-    return pImpl->getCookies();
+    return impl_->getCookies();
 }
 
 HttpResponse HttpClient::request(const std::string& url, HttpMethod method, const std::string& body) {
-    return pImpl->request(url, method, body, this);
+    return impl_->request(url, method, body, this);
 }
 
 HttpResponse HttpClient::requestWithManualRedirects(const std::string& url, HttpMethod method, const std::string& body) {
-    return pImpl->requestWithManualRedirects(url, method, body, this);
+    return impl_->requestWithManualRedirects(url, method, body, this);
 }
 
 OAuth2Token HttpClient::getOAuth2TokenWithJWT(const OAuth2Params& params) {
-    return pImpl->getOAuth2TokenWithJWT(params, this);
+    return impl_->getOAuth2TokenWithJWT(params, this);
 }
 
 OAuth2Token HttpClient::getOAuth2TokenWithJWT(const std::string& serviceAccountJson, const std::string& scope, const std::string& tokenEndpoint) {
-    return pImpl->getOAuth2TokenWithJWT(serviceAccountJson, scope, tokenEndpoint, this);
+    return impl_->getOAuth2TokenWithJWT(serviceAccountJson, scope, tokenEndpoint, this);
 }
 
 std::string HttpClient::base64UrlEncode(const std::string& input) {

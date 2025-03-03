@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.31)
+cmake_minimum_required(VERSION 3.28)
 project(CppWebForge)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -41,7 +41,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_compile_definitions(DEBUG_MODE)
 endif()
 
-# Add Crow dependency
 include(FetchContent)
 FetchContent_Declare(
     Crow
@@ -93,10 +92,11 @@ if(ENABLE_TESTS)
 endif()
 
 add_custom_target(clean_project
-    COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_BINARY_DIR}/CMakeFiles/cppwebforge.dir"
-    COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_BINARY_DIR}/libcppwebforge.a"
-    COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_BINARY_DIR}/cppwebforge_tests"
-    COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_BINARY_DIR}/CMakeFiles/cppwebforge_tests.dir"
-    COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_BINARY_DIR}/Testing"
+    COMMAND ${CMAKE_COMMAND} -E echo "Cleaning project-specific build files"
+    COMMAND ${CMAKE_COMMAND} -E rm -rf "${CMAKE_BINARY_DIR}/CMakeFiles/cppwebforge.dir" || true
+    COMMAND ${CMAKE_COMMAND} -E rm -f "${CMAKE_BINARY_DIR}/libcppwebforge.a" || true
+    COMMAND ${CMAKE_COMMAND} -E rm -f "${CMAKE_BINARY_DIR}/cppwebforge_tests" || true
+    COMMAND ${CMAKE_COMMAND} -E rm -rf "${CMAKE_BINARY_DIR}/CMakeFiles/cppwebforge_tests.dir" || true
+    COMMAND ${CMAKE_COMMAND} -E rm -rf "${CMAKE_BINARY_DIR}/Testing" || true
     COMMENT "Cleaning project-specific build files"
 )

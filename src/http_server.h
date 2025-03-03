@@ -21,8 +21,8 @@ public:
     bool is_running() const;
     
 private:
-    class Impl;
-    std::unique_ptr<Impl> impl_;
+    class HttpServerImpl;
+    std::unique_ptr<HttpServerImpl> impl_;
     bool running_;
 };
 

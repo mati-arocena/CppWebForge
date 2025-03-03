@@ -3,9 +3,9 @@
 
 namespace cppwebforge {
 
-class HttpServer::Impl {
+class HttpServer::HttpServerImpl {
 public:
-    Impl(int port) : port_(port) {
+    HttpServerImpl(int port) : port_(port) {
         CROW_ROUTE(app_, "/")([](){
             return "Hello World!";
         });
@@ -32,7 +32,7 @@ private:
 };
 
 HttpServer::HttpServer(int port) 
-    : impl_(std::make_unique<Impl>(port))
+    : impl_(std::make_unique<HttpServerImpl>(port))
     , running_(false) {
 }
 
