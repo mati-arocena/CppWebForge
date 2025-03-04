@@ -41,6 +41,11 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_compile_definitions(DEBUG_MODE)
 endif()
 
+if (ENABLE_TESTS)
+  add_compile_definitions(DEBUG_MODE)
+  add_compile_definitions(ENABLE_PERFORMANCE_TESTING)
+endif()
+
 include(FetchContent)
 FetchContent_Declare(
     Crow
@@ -69,7 +74,6 @@ if(ENABLE_TESTS)
   FetchContent_MakeAvailable(googletest)
 
   find_package(CURL REQUIRED)
-
   file(GLOB_RECURSE TEST_FILES "tests/*.cpp")
   add_executable(cppwebforge_tests ${TEST_FILES})
 
