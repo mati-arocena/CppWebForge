@@ -6,7 +6,6 @@
 #include "../src/http_client.h"
 
 namespace cppwebforge {
-namespace test {
 
 class MockHttpServer {
 public:
@@ -159,15 +158,12 @@ TEST_F(HttpClientTest, JsonResponse) {
 }
 
 TEST_F(HttpClientTest, OAuth2TokenRequest) {
-    // Create a mock service account JSON
     crow::json::wvalue serviceAccount;
     serviceAccount["client_email"] = "test@example.com";
     
-    // This is not a valid private key, but we'll handle the exception
     serviceAccount["private_key"] = "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7VJTUt9Us8cKj\nMzEfYyjiWA4R4/M2bS1GB4t7NXp98C3SC6dVMvDuictGeurT8jNbvJZHtCSuYEvu\nNMoSfm76oqFvAp8Gy0iz5sxjZmSnXyCdPEovGhLa0VzMaQ8s+CLOyS56YyCFGeJZ\n-----END PRIVATE KEY-----\n";
     
     try {
-        // Create OAuth2 parameters
         OAuth2Params params;
         params.service_account_json = serviceAccount.dump();
         params.scope = "test_scope";
@@ -181,12 +177,9 @@ TEST_F(HttpClientTest, OAuth2TokenRequest) {
         EXPECT_EQ(token.refresh_token, "mock_refresh_token");
         EXPECT_EQ(token.scope, "test_scope");
     } catch (const std::exception& e) {
-        // This test is expected to fail due to RSA signing issues with the mock key
-        // We'll just log the error and consider the test passed
         std::cerr << "OAuth2 test skipped due to: " << e.what() << std::endl;
         SUCCEED() << "OAuth2 test skipped due to RSA signing issues with mock key";
     }
 }
 
-} // namespace test
 } // namespace cppwebforge

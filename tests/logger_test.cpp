@@ -6,7 +6,6 @@
 #include "../src/logger.h"
 
 namespace cppwebforge {
-namespace testing {
 
 class LoggerTest : public ::testing::Test {
 protected:
@@ -90,5 +89,4 @@ TEST_F(LoggerTest, DebugLogRotationTest) {
 }
 #endif
 
-} // namespace testing
-} // namespace cppwebforge 
+} // namespace cppwebforge

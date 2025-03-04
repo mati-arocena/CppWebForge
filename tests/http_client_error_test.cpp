@@ -6,7 +6,6 @@
 #include "../src/http_client.h"
 
 namespace cppwebforge {
-namespace test {
 
 class ErrorMockHttpServer {
 public:
@@ -191,5 +190,4 @@ TEST_F(HttpClientErrorTest, CircularRedirects) {
     }
 }
 
-} // namespace test
 } // namespace cppwebforge

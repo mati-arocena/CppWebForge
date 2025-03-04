@@ -3,6 +3,8 @@
 #include <chrono>
 #include "../src/performance.h"
 
+namespace cppwebforge {
+
 TEST(PerformanceTest, ScopedPerformance) {
     SCOPED_PERF("Outer Scope");
     
@@ -20,3 +22,5 @@ TEST(PerformanceTest, ScopedPerformance) {
     
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
 }
+
+} // namespace cppwebforge

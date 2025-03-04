@@ -53,7 +53,25 @@ FetchContent_Declare(
     GIT_TAG v1.2.1
 )
 
-FetchContent_MakeAvailable(Crow)
+set(BUILD_TESTING OFF CACHE BOOL "Disable Inja tests")
+set(INJA_USE_EMBEDDED_JSON ON CACHE BOOL "Use embedded JSON library")
+set(INJA_BUILD_TESTS OFF CACHE BOOL "Disable Inja tests")
+
+FetchContent_Declare(
+    inja
+    GIT_REPOSITORY https://github.com/pantor/inja
+    GIT_TAG v3.4.0
+)
+
+FetchContent_MakeAvailable(Crow inja)
+
+if(NOT TARGET inja::inja)
+    add_library(inja::inja INTERFACE IMPORTED)
+    target_include_directories(inja::inja INTERFACE 
+        ${inja_SOURCE_DIR}/include
+        ${inja_SOURCE_DIR}/third_party/include
+    )
+endif()
 
 add_library(cppwebforge STATIC ${SRC_FILES})
 set_target_properties(cppwebforge PROPERTIES
@@ -61,7 +79,12 @@ set_target_properties(cppwebforge PROPERTIES
 )
 target_compile_options(cppwebforge PRIVATE ${SANITIZER_FLAGS} ${PERFORMANCE_FLAGS} ${WARNING_FLAGS})
 target_link_options(cppwebforge PRIVATE ${SANITIZER_FLAGS})
-target_link_libraries(cppwebforge PRIVATE Crow::Crow OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(cppwebforge PRIVATE Crow::Crow OpenSSL::SSL OpenSSL::Crypto inja::inja)
+
+target_include_directories(cppwebforge PRIVATE 
+    ${inja_SOURCE_DIR}/include
+    ${inja_SOURCE_DIR}/third_party/include
+)
 
 if(ENABLE_TESTS)
   include(FetchContent)

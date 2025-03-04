@@ -5,7 +5,6 @@
 #include "../src/http_server.h"
 
 namespace cppwebforge {
-namespace test {
 
 size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userp) {
     userp->append((char*)contents, size * nmemb);
@@ -64,5 +63,4 @@ TEST_F(HttpServerTest, JsonEndpoint) {
     EXPECT_TRUE(response.find("success") != std::string::npos);
 }
 
-} // namespace test
 } // namespace cppwebforge

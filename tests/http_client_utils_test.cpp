@@ -4,7 +4,6 @@
 #include "../src/http_client.h"
 
 namespace cppwebforge {
-namespace test {
 
 class HttpClientUtilsTest : public ::testing::Test {
 protected:
@@ -38,7 +37,6 @@ TEST_F(HttpClientUtilsTest, Base64UrlEncode) {
 TEST_F(HttpClientUtilsTest, SignWithRSA) {
     std::string data = "Test data to sign";
     
-    // This is not a valid private key, but we'll handle the exception
     std::string privateKey = R"(-----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7VJTUt9Us8cKj
 MzEfYyjiWA4R4/M2bS1GB4t7NXp98C3SC6dVMvDuictGeurT8jNbvJZHtCSuYEvu
@@ -73,5 +71,4 @@ TEST_F(HttpClientUtilsTest, CookieManagement) {
     EXPECT_EQ(client_->getCookies(), cookies);
 }
 
-} // namespace test
 } // namespace cppwebforge
