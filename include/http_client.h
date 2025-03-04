@@ -7,6 +7,8 @@
 #include <memory>
 #include <ctime>
 
+namespace cppwebforge {
+
 class HttpClient;
 
 using HttpResponseCallback = std::function<size_t(void*, size_t, size_t, void*)>;
@@ -84,3 +86,5 @@ public:
 private:
     std::unique_ptr<HttpClientImpl> impl_;
 }; 
+
+} // namespace cppwebforge

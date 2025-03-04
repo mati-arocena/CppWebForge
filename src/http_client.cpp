@@ -22,6 +22,8 @@ namespace {
     constexpr int TOKEN_EXPIRY_SECONDS = 3600;
 }
 
+namespace cppwebforge {
+
 class HttpClientImpl {
 public:
     HttpClientImpl() : headerList_(nullptr) {
@@ -498,3 +500,5 @@ std::string HttpClient::base64UrlEncode(const std::string& input) {
 std::string HttpClient::signWithRSA(const std::string& data, const std::string& privateKey) {
     return HttpClientImpl::signWithRSA(data, privateKey);
 }
+
+} // namespace cppwebforge
