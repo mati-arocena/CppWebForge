@@ -82,6 +82,7 @@ target_link_options(cppwebforge PRIVATE ${SANITIZER_FLAGS})
 target_link_libraries(cppwebforge PRIVATE Crow::Crow OpenSSL::SSL OpenSSL::Crypto inja::inja)
 
 target_include_directories(cppwebforge PRIVATE 
+    ${CMAKE_SOURCE_DIR}/include
     ${inja_SOURCE_DIR}/include
     ${inja_SOURCE_DIR}/third_party/include
 )

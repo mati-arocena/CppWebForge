@@ -2,7 +2,7 @@
 #include <thread>
 #include <chrono>
 #include <curl/curl.h>
-#include "../src/http_server.h"
+#include "../include/http_server.h"
 
 namespace cppwebforge {
 

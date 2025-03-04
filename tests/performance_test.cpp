@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <thread>
 #include <chrono>
-#include "../src/performance.h"
+#include "../include/performance.h"
 
 namespace cppwebforge {
 

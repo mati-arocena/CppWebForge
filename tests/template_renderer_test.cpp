@@ -1,4 +1,4 @@
-#include "template_renderer.h"
+#include "../include/template_renderer.h"
 #include <gtest/gtest.h>
 #include <filesystem>
 #include <fstream>
