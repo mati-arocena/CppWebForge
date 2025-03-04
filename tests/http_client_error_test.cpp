@@ -2,7 +2,8 @@
 #include <gmock/gmock.h>
 #include <thread>
 #include <chrono>
-#include <crow.h>
+#define CPPHTTPLIB_OPENSSL_SUPPORT
+#include <httplib.h>
 #include <nlohmann/json.hpp>
 #include "../include/http_client.h"
 
@@ -11,66 +12,47 @@ namespace cppwebforge {
 class ErrorMockHttpServer {
 public:
     ErrorMockHttpServer(int port) : port_(port), running_(false) {
-        CROW_ROUTE(app_, "/not_found")
-        ([]() {
-            crow::response resp;
-            resp.code = 404;
-            resp.body = "Resource not found";
-            return resp;
+        svr_.Get("/not_found", [](const httplib::Request&, httplib::Response& res) {
+            res.status = 404;
+            res.set_content("Resource not found", "text/plain");
         });
 
-        CROW_ROUTE(app_, "/server_error")
-        ([]() {
-            crow::response resp;
-            resp.code = 500;
-            resp.body = "Internal server error";
-            return resp;
+        svr_.Get("/server_error", [](const httplib::Request&, httplib::Response& res) {
+            res.status = 500;
+            res.set_content("Internal server error", "text/plain");
         });
 
-        CROW_ROUTE(app_, "/timeout")
-        ([]() {
+        svr_.Get("/timeout", [](const httplib::Request&, httplib::Response& res) {
             std::this_thread::sleep_for(std::chrono::seconds(2));
-            return "Delayed response";
+            res.set_content("Delayed response", "text/plain");
         });
 
-        CROW_ROUTE(app_, "/bad_json")
-        ([]() {
-            return "{\"incomplete_json\":true,";
+        svr_.Get("/bad_json", [](const httplib::Request&, httplib::Response& res) {
+            res.set_content("{\"incomplete_json\":true,", "application/json");
         });
 
-        CROW_ROUTE(app_, "/large_response")
-        ([]() {
+        svr_.Get("/large_response", [](const httplib::Request&, httplib::Response& res) {
             std::string large_data(1024 * 1024, 'X'); // 1MB of data
-            return large_data;
+            res.set_content(large_data, "text/plain");
         });
 
-        CROW_ROUTE(app_, "/redirect1")
-        ([this]() {
-            crow::response resp;
-            resp.code = 302;
-            resp.set_header("Location", "http://localhost:" + std::to_string(port_) + "/redirect2");
-            return resp;
+        svr_.Get("/redirect1", [this](const httplib::Request&, httplib::Response& res) {
+            res.status = 302;
+            res.set_header("Location", "http://localhost:" + std::to_string(port_) + "/redirect2");
         });
 
-        CROW_ROUTE(app_, "/redirect2")
-        ([this]() {
-            crow::response resp;
-            resp.code = 302;
-            resp.set_header("Location", "http://localhost:" + std::to_string(port_) + "/redirect3");
-            return resp;
+        svr_.Get("/redirect2", [this](const httplib::Request&, httplib::Response& res) {
+            res.status = 302;
+            res.set_header("Location", "http://localhost:" + std::to_string(port_) + "/redirect3");
         });
 
-        CROW_ROUTE(app_, "/redirect3")
-        ([]() {
-            return "Final destination";
+        svr_.Get("/redirect3", [](const httplib::Request&, httplib::Response& res) {
+            res.set_content("Final destination", "text/plain");
         });
 
-        CROW_ROUTE(app_, "/circular_redirect")
-        ([this]() {
-            crow::response resp;
-            resp.code = 302;
-            resp.set_header("Location", "http://localhost:" + std::to_string(port_) + "/circular_redirect");
-            return resp;
+        svr_.Get("/circular_redirect", [this](const httplib::Request&, httplib::Response& res) {
+            res.status = 302;
+            res.set_header("Location", "http://localhost:" + std::to_string(port_) + "/circular_redirect");
         });
     }
 
@@ -78,7 +60,7 @@ public:
         if (!running_) {
             running_ = true;
             server_thread_ = std::thread([this]() {
-                app_.port(port_).run();
+                svr_.listen("localhost", port_);
             });
             // Give the server a moment to start
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -87,7 +69,7 @@ public:
 
     void stop() {
         if (running_) {
-            app_.stop();
+            svr_.stop();
             if (server_thread_.joinable()) {
                 server_thread_.join();
             }
@@ -100,7 +82,7 @@ public:
     }
 
 private:
-    crow::SimpleApp app_;
+    httplib::Server svr_;
     int port_;
     bool running_;
     std::thread server_thread_;

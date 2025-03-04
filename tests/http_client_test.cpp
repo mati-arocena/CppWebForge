@@ -2,7 +2,8 @@
 #include <gmock/gmock.h>
 #include <thread>
 #include <chrono>
-#include <crow.h>
+#define CPPHTTPLIB_OPENSSL_SUPPORT
+#include <httplib.h>
 #include <nlohmann/json.hpp>
 #include "../include/http_client.h"
 
@@ -11,59 +12,47 @@ namespace cppwebforge {
 class MockHttpServer {
 public:
     MockHttpServer(int port) : port_(port), running_(false) {
-        CROW_ROUTE(app_, "/test")
-        ([]() {
-            return "Test response";
+        svr_.Get("/test", [](const httplib::Request&, httplib::Response& res) {
+            res.set_content("Test response", "text/plain");
         });
 
-        CROW_ROUTE(app_, "/echo")
-        .methods(crow::HTTPMethod::POST)
-        ([](const crow::request& req) {
-            return req.body;
+        svr_.Post("/echo", [](const httplib::Request& req, httplib::Response& res) {
+            res.set_content(req.body, "text/plain");
         });
 
-        CROW_ROUTE(app_, "/headers")
-        ([](const crow::request& req) {
+        svr_.Get("/headers", [](const httplib::Request& req, httplib::Response& res) {
             nlohmann::json response;
             for (const auto& header : req.headers) {
                 response[header.first] = header.second;
             }
-            return response.dump();
+            res.set_content(response.dump(), "application/json");
         });
 
-        CROW_ROUTE(app_, "/cookies")
-        ([]() {
-            crow::response resp("Cookie test");
-            resp.set_header("Set-Cookie", "test_cookie=value; Path=/");
-            return resp;
+        svr_.Get("/cookies", [](const httplib::Request&, httplib::Response& res) {
+            res.set_header("Set-Cookie", "test_cookie=value; Path=/");
+            res.set_content("Cookie test", "text/plain");
         });
 
-        CROW_ROUTE(app_, "/redirect")
-        ([this](const crow::request&) {
-            crow::response resp;
-            resp.code = 302;
-            resp.set_header("Location", "http://localhost:" + std::to_string(port_) + "/test");
-            return resp;
+        svr_.Get("/redirect", [this](const httplib::Request&, httplib::Response& res) {
+            res.status = 302;
+            res.set_header("Location", "http://localhost:" + std::to_string(port_) + "/test");
         });
 
-        CROW_ROUTE(app_, "/json")
-        ([]() {
+        svr_.Get("/json", [](const httplib::Request&, httplib::Response& res) {
             nlohmann::json response;
             response["message"] = "JSON response";
             response["status"] = "success";
-            return response.dump();
+            res.set_content(response.dump(), "application/json");
         });
 
-        CROW_ROUTE(app_, "/oauth2/token")
-        .methods(crow::HTTPMethod::POST)
-        ([](const crow::request&) {
+        svr_.Post("/oauth2/token", [](const httplib::Request&, httplib::Response& res) {
             nlohmann::json response;
             response["access_token"] = "mock_access_token";
             response["token_type"] = "Bearer";
             response["expires_in"] = 3600;
             response["refresh_token"] = "mock_refresh_token";
             response["scope"] = "test_scope";
-            return response.dump();
+            res.set_content(response.dump(), "application/json");
         });
     }
 
@@ -71,7 +60,7 @@ public:
         if (!running_) {
             running_ = true;
             server_thread_ = std::thread([this]() {
-                app_.port(port_).run();
+                svr_.listen("localhost", port_);
             });
             // Give the server a moment to start
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -80,7 +69,7 @@ public:
 
     void stop() {
         if (running_) {
-            app_.stop();
+            svr_.stop();
             if (server_thread_.joinable()) {
                 server_thread_.join();
             }
@@ -93,7 +82,7 @@ public:
     }
 
 private:
-    crow::SimpleApp app_;
+    httplib::Server svr_;
     int port_;
     bool running_;
     std::thread server_thread_;
