@@ -10,6 +10,8 @@ option(ENABLE_PERFORMANCE_TESTING "Enable Performance Testing" OFF)
 option(ENABLE_TESTS "Enable testing" OFF)
 
 find_package(OpenSSL REQUIRED)
+find_package(ZLIB REQUIRED)
+find_package(Threads REQUIRED)
 
 if (ENABLE_THREAD_SANITIZER)
     set(SANITIZER_FLAGS "-fsanitize=thread")
@@ -47,10 +49,11 @@ if (ENABLE_TESTS)
 endif()
 
 include(FetchContent)
+
 FetchContent_Declare(
-    Crow
-    GIT_REPOSITORY https://github.com/CrowCpp/Crow
-    GIT_TAG v1.2.1
+    httplib
+    GIT_REPOSITORY https://github.com/yhirose/cpp-httplib
+    GIT_TAG v0.19.0
 )
 
 set(BUILD_TESTING OFF CACHE BOOL "Disable Inja tests")
@@ -63,7 +66,10 @@ FetchContent_Declare(
     GIT_TAG v3.4.0
 )
 
-FetchContent_MakeAvailable(Crow inja)
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+set(JSON_Install OFF CACHE INTERNAL "")
+
+FetchContent_MakeAvailable(httplib inja)
 
 if(NOT TARGET inja::inja)
     add_library(inja::inja INTERFACE IMPORTED)
@@ -79,12 +85,19 @@ set_target_properties(cppwebforge PROPERTIES
 )
 target_compile_options(cppwebforge PRIVATE ${SANITIZER_FLAGS} ${PERFORMANCE_FLAGS} ${WARNING_FLAGS})
 target_link_options(cppwebforge PRIVATE ${SANITIZER_FLAGS})
-target_link_libraries(cppwebforge PRIVATE Crow::Crow OpenSSL::SSL OpenSSL::Crypto inja::inja)
+target_link_libraries(cppwebforge PRIVATE 
+    OpenSSL::SSL 
+    OpenSSL::Crypto 
+    ZLIB::ZLIB
+    Threads::Threads
+    inja::inja
+)
 
 target_include_directories(cppwebforge PRIVATE 
     ${CMAKE_SOURCE_DIR}/include
     ${inja_SOURCE_DIR}/include
     ${inja_SOURCE_DIR}/third_party/include
+    ${httplib_SOURCE_DIR}
 )
 
 if(ENABLE_TESTS)
@@ -104,15 +117,21 @@ if(ENABLE_TESTS)
   target_link_libraries(cppwebforge_tests
     PRIVATE
     cppwebforge
-    Crow::Crow
     gtest_main
     gmock_main
     CURL::libcurl
     OpenSSL::SSL
     OpenSSL::Crypto
+    ZLIB::ZLIB
+    Threads::Threads
   )
 
-  target_include_directories(cppwebforge_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+  target_include_directories(cppwebforge_tests PRIVATE 
+    ${CMAKE_SOURCE_DIR}/src
+    ${inja_SOURCE_DIR}/include
+    ${inja_SOURCE_DIR}/third_party/include
+    ${httplib_SOURCE_DIR}
+  )
 
   enable_testing()
   include(GoogleTest)

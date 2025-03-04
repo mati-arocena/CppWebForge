@@ -5,7 +5,6 @@
 #include <sstream>
 #include "logger.h"
 
-
 #ifdef PERFORMANCE_TESTING
 namespace cppwebforge {
 /**
