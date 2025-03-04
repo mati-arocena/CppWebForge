@@ -8,7 +8,6 @@
 
 namespace cppwebforge {
 
-
 class Logger {
 public:
     static Logger& getInstance();

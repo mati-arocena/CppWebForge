@@ -1,5 +1,6 @@
 #include "http_server.h"
 #include <crow.h>
+#include <string>
 
 namespace cppwebforge {
 
@@ -9,26 +10,35 @@ public:
         CROW_ROUTE(app_, "/")([](){
             return "Hello World!";
         });
-        
-        CROW_ROUTE(app_, "/json")([](){
-            crow::json::wvalue response;
-            response["message"] = "Hello from JSON endpoint!";
-            response["status"] = "success";
-            return response;
-        });
+    }
+
+    ~HttpServerImpl() {
+        if (running_) {
+            stop();
+        }
     }
     
     void start() {
+        running_ = true;
         app_.port(port_).run();
     }
     
     void stop() {
         app_.stop();
+        running_ = false;
+    }
+
+    void addRoute(const std::string& path, const RouteHandler& handler) {
+        app_.route_dynamic(path)
+        ([handler](const crow::request&) {
+            return handler();
+        });
     }
     
 private:
     crow::SimpleApp app_;
     int port_;
+    bool running_ = false;
 };
 
 HttpServer::HttpServer(int port) 
@@ -36,7 +46,12 @@ HttpServer::HttpServer(int port)
     , running_(false) {
 }
 
-HttpServer::~HttpServer() = default;
+HttpServer::~HttpServer()
+{
+    if (running_) {
+        stop();
+    }
+}
 
 HttpServer::HttpServer(HttpServer&&) noexcept = default;
 HttpServer& HttpServer::operator=(HttpServer&&) noexcept = default;
@@ -53,8 +68,8 @@ void HttpServer::stop() {
     }
 }
 
-bool HttpServer::is_running() const {
-    return running_;
+void HttpServer::addRoute(const std::string& path, const RouteHandler& handler) {
+    impl_->addRoute(path, handler);
 }
 
 } // namespace cppwebforge

@@ -3,6 +3,7 @@
 #include <thread>
 #include <chrono>
 #include <crow.h>
+#include <nlohmann/json.hpp>
 #include "../include/http_client.h"
 
 namespace cppwebforge {
@@ -163,9 +164,9 @@ TEST_F(HttpClientErrorTest, BadJsonResponse) {
 
     bool parsing_failed = false;
     try {
-        crow::json::rvalue parsed = crow::json::load(response.body);
+        auto parsed = nlohmann::json::parse(response.body);
         auto test_value = parsed["incomplete_json"];
-        if (!test_value) {
+        if (test_value.is_null()) {
             parsing_failed = true;
         }
     } catch (const std::exception& e) {

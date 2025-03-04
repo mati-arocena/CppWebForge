@@ -63,6 +63,9 @@ FetchContent_Declare(
     GIT_TAG v3.4.0
 )
 
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+set(JSON_Install OFF CACHE INTERNAL "")
+
 FetchContent_MakeAvailable(Crow inja)
 
 if(NOT TARGET inja::inja)
@@ -112,7 +115,11 @@ if(ENABLE_TESTS)
     OpenSSL::Crypto
   )
 
-  target_include_directories(cppwebforge_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+  target_include_directories(cppwebforge_tests PRIVATE 
+    ${CMAKE_SOURCE_DIR}/src
+    ${inja_SOURCE_DIR}/include
+    ${inja_SOURCE_DIR}/third_party/include
+  )
 
   enable_testing()
   include(GoogleTest)

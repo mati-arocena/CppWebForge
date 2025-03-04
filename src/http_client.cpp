@@ -3,7 +3,7 @@
 #include <sstream>
 #include <ctime>
 #include <curl/curl.h>
-#include <crow/json.h>
+#include <nlohmann/json.hpp>
 #include <openssl/bio.h>
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -271,28 +271,20 @@ public:
         return response;
     }
 
-    OAuth2Token getOAuth2TokenWithJWT(const std::string& serviceAccountJson, const std::string& scope, const std::string& tokenEndpoint, HttpClient* client_ptr) {
-        OAuth2Params params;
-        params.service_account_json = serviceAccountJson;
-        params.scope = scope;
-        params.token_endpoint = tokenEndpoint;
-        return getOAuth2TokenWithJWT(params, client_ptr);
-    }
-
     OAuth2Token getOAuth2TokenWithJWT(const OAuth2Params& params, HttpClient* client_ptr) {
-        crow::json::rvalue serviceAccount = crow::json::load(params.service_account_json);
+        auto serviceAccount = nlohmann::json::parse(params.service_account_json);
         
-        std::string clientEmail = serviceAccount["client_email"].s();
-        std::string privateKey = serviceAccount["private_key"].s();
+        std::string clientEmail = serviceAccount["client_email"].get<std::string>();
+        std::string privateKey = serviceAccount["private_key"].get<std::string>();
 
-        crow::json::wvalue header;
+        nlohmann::json header;
         header["alg"] = "RS256";
         header["typ"] = "JWT";
         
         std::time_t now = std::time(nullptr);
         std::time_t expiry = now + TOKEN_EXPIRY_SECONDS;
         
-        crow::json::wvalue claims;
+        nlohmann::json claims;
         claims["iss"] = clientEmail;
         claims["scope"] = params.scope;
         claims["aud"] = params.token_endpoint;
@@ -321,19 +313,19 @@ public:
             throw std::runtime_error("OAuth2 token request failed: " + response.body);
         }
         
-        crow::json::rvalue tokenResponse = crow::json::load(response.body);
+        auto tokenResponse = nlohmann::json::parse(response.body);
         
         OAuth2Token token;
-        token.access_token = tokenResponse["access_token"].s();
-        token.token_type = tokenResponse["token_type"].s();
-        token.expires_in = static_cast<int>(tokenResponse["expires_in"].i());
+        token.access_token = tokenResponse["access_token"].get<std::string>();
+        token.token_type = tokenResponse["token_type"].get<std::string>();
+        token.expires_in = tokenResponse["expires_in"].get<int>();
         
-        if (tokenResponse.has("refresh_token")) {
-            token.refresh_token = tokenResponse["refresh_token"].s();
+        if (tokenResponse.contains("refresh_token")) {
+            token.refresh_token = tokenResponse["refresh_token"].get<std::string>();
         }
         
-        if (tokenResponse.has("scope")) {
-            token.scope = tokenResponse["scope"].s();
+        if (tokenResponse.contains("scope")) {
+            token.scope = tokenResponse["scope"].get<std::string>();
         }
         
         token.expiry_time = now + token.expires_in;
@@ -490,7 +482,11 @@ OAuth2Token HttpClient::getOAuth2TokenWithJWT(const OAuth2Params& params) {
 }
 
 OAuth2Token HttpClient::getOAuth2TokenWithJWT(const std::string& serviceAccountJson, const std::string& scope, const std::string& tokenEndpoint) {
-    return impl_->getOAuth2TokenWithJWT(serviceAccountJson, scope, tokenEndpoint, this);
+    OAuth2Params params;
+    params.service_account_json = serviceAccountJson;
+    params.scope = scope;
+    params.token_endpoint = tokenEndpoint;
+    return impl_->getOAuth2TokenWithJWT(params, this);
 }
 
 std::string HttpClient::base64UrlEncode(const std::string& input) {

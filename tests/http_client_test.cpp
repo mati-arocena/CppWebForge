@@ -3,6 +3,7 @@
 #include <thread>
 #include <chrono>
 #include <crow.h>
+#include <nlohmann/json.hpp>
 #include "../include/http_client.h"
 
 namespace cppwebforge {
@@ -23,11 +24,11 @@ public:
 
         CROW_ROUTE(app_, "/headers")
         ([](const crow::request& req) {
-            crow::json::wvalue response;
+            nlohmann::json response;
             for (const auto& header : req.headers) {
                 response[header.first] = header.second;
             }
-            return response;
+            return response.dump();
         });
 
         CROW_ROUTE(app_, "/cookies")
@@ -47,22 +48,22 @@ public:
 
         CROW_ROUTE(app_, "/json")
         ([]() {
-            crow::json::wvalue response;
+            nlohmann::json response;
             response["message"] = "JSON response";
             response["status"] = "success";
-            return response;
+            return response.dump();
         });
 
         CROW_ROUTE(app_, "/oauth2/token")
         .methods(crow::HTTPMethod::POST)
         ([](const crow::request&) {
-            crow::json::wvalue response;
+            nlohmann::json response;
             response["access_token"] = "mock_access_token";
             response["token_type"] = "Bearer";
             response["expires_in"] = 3600;
             response["refresh_token"] = "mock_refresh_token";
             response["scope"] = "test_scope";
-            return response;
+            return response.dump();
         });
     }
 
@@ -152,13 +153,13 @@ TEST_F(HttpClientTest, JsonResponse) {
     HttpResponse response = client_->request("http://localhost:18081/json");
     EXPECT_EQ(response.status_code, 200);
     
-    crow::json::rvalue parsed = crow::json::load(response.body);
-    EXPECT_EQ(parsed["message"].s(), "JSON response");
-    EXPECT_EQ(parsed["status"].s(), "success");
+    auto parsed = nlohmann::json::parse(response.body);
+    EXPECT_EQ(parsed["message"], "JSON response");
+    EXPECT_EQ(parsed["status"], "success");
 }
 
 TEST_F(HttpClientTest, OAuth2TokenRequest) {
-    crow::json::wvalue serviceAccount;
+    nlohmann::json serviceAccount;
     serviceAccount["client_email"] = "test@example.com";
     
     serviceAccount["private_key"] = "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7VJTUt9Us8cKj\nMzEfYyjiWA4R4/M2bS1GB4t7NXp98C3SC6dVMvDuictGeurT8jNbvJZHtCSuYEvu\nNMoSfm76oqFvAp8Gy0iz5sxjZmSnXyCdPEovGhLa0VzMaQ8s+CLOyS56YyCFGeJZ\n-----END PRIVATE KEY-----\n";

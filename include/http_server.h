@@ -2,8 +2,11 @@
 
 #include <memory>
 #include <string>
+#include <functional>
 
 namespace cppwebforge {
+
+using RouteHandler = std::function<std::string()>;
 
 class HttpServer {
 public:
@@ -18,8 +21,8 @@ public:
     
     void start();
     void stop();
-    bool is_running() const;
     
+    void addRoute(const std::string& path, const RouteHandler& handler);
 private:
     class HttpServerImpl;
     std::unique_ptr<HttpServerImpl> impl_;

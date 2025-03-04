@@ -5,7 +5,6 @@
 #include <sstream>
 #include <fstream>
 #include <mutex>
-#include <crow.h>
 #include <vector>
 #include <algorithm>
 
@@ -52,7 +51,7 @@ public:
         logFile.open(filename, std::ios::app);
         
         if (!logFile.is_open()) {
-            CROW_LOG_ERROR << "Failed to open log file: " << filename;
+            std::cerr << "Failed to open log file: " << filename << "\n";
         }
     }
 
@@ -120,7 +119,7 @@ public:
         logWithLevel(info ? "INFO" : "DEBUG", message);
         
         if (consoleOutput) {
-            CROW_LOG_INFO << message;
+            std::cout << message << "\n";
         }
     }
 
